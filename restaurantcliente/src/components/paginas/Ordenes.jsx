@@ -3,23 +3,29 @@ import { FirebaseContext } from '../../firebase';
 import Orden from '../ui/Orden';
 
 const Ordenes = () => {
-  // Context con las operaciones de firebase
   const { firebase } = useContext(FirebaseContext);
-
-  // state con las ordenes
   const [ordenes, guardarOrdenes] = useState([]);
 
   useEffect(() => {
     const obtenerOrdenes = () => {
-      firebase.db.collection('ordenes').where('completado', '==', false).onSnapshot(manejarSnapshot);
+      firebase.db.collection('orders').where('status', '==', 0).onSnapshot(manejarSnapshot);
     };
     obtenerOrdenes();
   }, [firebase.db]);
 
   function manejarSnapshot(snapshot) {
     const ordenes = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
+      idOrden: doc.data().idOrden,
+      orden: doc.data().orden.map(platillo => ({
+        id: platillo.id,
+        cantidad: platillo.cantidad,
+        nombre: platillo.nombrePlatillo,
+        precio: platillo.precio,
+        imagen: platillo.imagen,
+      })),
+      total: doc.data().total,
+      tiempoEntrega: doc.data().tiempoEntrega,
+      status: doc.data().status,
     }));
 
     guardarOrdenes(ordenes);
@@ -31,8 +37,8 @@ const Ordenes = () => {
       <div className="sm:flex sm:flex-wrap -mx-3">
         {ordenes.map(orden => (
           <Orden 
-          key={orden.id} 
-          orden={orden} 
+            key={orden.idOrden} 
+            orden={orden} 
           />
         ))}
       </div>
